@@ -237,6 +237,7 @@ body{min-height:100dvh;background:var(--bg);color:var(--text);
         <div style="color:var(--text3);font-size:.8rem" id="home-date"></div>
       </div>
       <div id="announcement-banner" class="fu1"></div>
+      <div id="late-warning-banner"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px" class="fu1">
         <div class="stat-card"><div class="stat-val" id="stat-in" style="color:var(--green)">0</div><div class="stat-lbl" id="lbl-ci">حضور اليوم</div></div>
         <div class="stat-card"><div class="stat-val" id="stat-out" style="color:var(--amber)">0</div><div class="stat-lbl" id="lbl-co">الانصراف</div></div>
@@ -341,9 +342,11 @@ body{min-height:100dvh;background:var(--bg);color:var(--text);
         </div>
         <div style="display:flex;border-bottom:1px solid var(--div)">
           <button class="tab on" data-tab="today" onclick="switchTab('today')" id="tb-today">اليوم</button>
+          <button class="tab" data-tab="report" onclick="switchTab('report')" id="tb-report">📅 يومي</button>
           <button class="tab" data-tab="all" onclick="switchTab('all')" id="tb-all">الكل</button>
           <button class="tab" data-tab="alerts" onclick="switchTab('alerts')" id="tb-alerts">📢</button>
           <button class="tab" data-tab="employees" onclick="switchTab('employees')" id="tb-employees">الموظفون</button>
+          <button class="tab" data-tab="shifts" onclick="switchTab('shifts')" id="tb-shifts">🔄 شفتات</button>
           <button class="tab" data-tab="settings" onclick="switchTab('settings')" id="tb-settings">⚙️</button>
         </div>
       </div>
@@ -356,6 +359,41 @@ body{min-height:100dvh;background:var(--bg);color:var(--text);
         </div>
         <div style="font-size:.78rem;color:var(--text3);margin-bottom:8px" id="adm-count-today"></div>
         <div id="adm-list-today"></div>
+      </div>
+
+      <!-- REPORT -->
+      <div id="tab-report" style="display:none">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+          <button onclick="reportPrev()" style="background:var(--card);border:1px solid var(--card-b);color:var(--text);border-radius:10px;padding:8px 14px;font-family:inherit;font-size:1rem;cursor:pointer">‹</button>
+          <div style="flex:1;text-align:center">
+            <div style="font-weight:700;font-size:.95rem;color:var(--text)" id="report-date-lbl"></div>
+            <div style="font-size:.72rem;color:var(--text3);margin-top:2px" id="report-day-lbl"></div>
+          </div>
+          <button onclick="reportNext()" id="report-next-btn" style="background:var(--card);border:1px solid var(--card-b);color:var(--text);border-radius:10px;padding:8px 14px;font-family:inherit;font-size:1rem;cursor:pointer">›</button>
+        </div>
+        <!-- summary bar -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px" id="report-stats"></div>
+        <!-- checkin section -->
+        <div style="font-size:.82rem;font-weight:700;color:var(--green);margin-bottom:10px;display:flex;align-items:center;gap:6px">
+          <span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block"></span>
+          <span id="report-ci-title">سجلوا الحضور</span>
+          <span id="report-ci-count" style="background:rgba(34,197,94,.12);padding:2px 8px;border-radius:20px;font-size:.72rem"></span>
+        </div>
+        <div id="report-ci-list" style="margin-bottom:20px"></div>
+        <!-- checkout section -->
+        <div style="font-size:.82rem;font-weight:700;color:var(--amber);margin-bottom:10px;display:flex;align-items:center;gap:6px">
+          <span style="width:8px;height:8px;border-radius:50%;background:var(--amber);display:inline-block"></span>
+          <span id="report-co-title">سجلوا الانصراف</span>
+          <span id="report-co-count" style="background:rgba(245,158,11,.12);padding:2px 8px;border-radius:20px;font-size:.72rem"></span>
+        </div>
+        <div id="report-co-list" style="margin-bottom:20px"></div>
+        <!-- absent section -->
+        <div style="font-size:.82rem;font-weight:700;color:var(--text3);margin-bottom:10px;display:flex;align-items:center;gap:6px">
+          <span style="width:8px;height:8px;border-radius:50%;background:var(--text3);display:inline-block"></span>
+          <span id="report-abs-title">لم يسجلوا</span>
+          <span id="report-abs-count" style="background:var(--card);padding:2px 8px;border-radius:20px;font-size:.72rem"></span>
+        </div>
+        <div id="report-abs-list" style="margin-bottom:20px"></div>
       </div>
 
       <!-- ALL -->
@@ -396,6 +434,47 @@ body{min-height:100dvh;background:var(--bg);color:var(--text);
         <div id="adm-emp-list"></div>
       </div>
 
+
+      <!-- SHIFTS -->
+      <div id="tab-shifts" style="display:none">
+
+        <!-- Add shift -->
+        <div class="section-box gold-box" style="margin-bottom:18px">
+          <div style="font-size:.92rem;font-weight:700;color:var(--gold);margin-bottom:16px">🔄 إضافة شيفت جديد</div>
+          <input id="shift-name" class="inp" placeholder="اسم الشيفت (مثال: صباحي)" style="margin-bottom:9px"/>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px">
+            <div>
+              <div style="font-size:.75rem;color:var(--text3);margin-bottom:4px">⏰ من</div>
+              <input id="shift-from" type="time" class="inp" value="06:00" style="direction:ltr;font-weight:700"/>
+            </div>
+            <div>
+              <div style="font-size:.75rem;color:var(--text3);margin-bottom:4px">⏰ إلى</div>
+              <input id="shift-to" type="time" class="inp" value="14:00" style="direction:ltr;font-weight:700"/>
+            </div>
+          </div>
+          <div style="font-size:.75rem;color:var(--text3);margin-bottom:6px">🎨 لون الشيفت</div>
+          <div style="display:flex;gap:8px;margin-bottom:14px" id="shift-colors">
+            <div onclick="selectShiftColor('#3b82f6')" data-color="#3b82f6" style="width:32px;height:32px;border-radius:50%;background:#3b82f6;cursor:pointer;border:3px solid #3b82f6;box-shadow:0 0 0 2px rgba(59,130,246,.5)"></div>
+            <div onclick="selectShiftColor('#22c55e')" data-color="#22c55e" style="width:32px;height:32px;border-radius:50%;background:#22c55e;cursor:pointer;border:2px solid transparent"></div>
+            <div onclick="selectShiftColor('#f59e0b')" data-color="#f59e0b" style="width:32px;height:32px;border-radius:50%;background:#f59e0b;cursor:pointer;border:2px solid transparent"></div>
+            <div onclick="selectShiftColor('#ef4444')" data-color="#ef4444" style="width:32px;height:32px;border-radius:50%;background:#ef4444;cursor:pointer;border:2px solid transparent"></div>
+            <div onclick="selectShiftColor('#8b5cf6')" data-color="#8b5cf6" style="width:32px;height:32px;border-radius:50%;background:#8b5cf6;cursor:pointer;border:2px solid transparent"></div>
+            <div onclick="selectShiftColor('#d4af37')" data-color="#d4af37" style="width:32px;height:32px;border-radius:50%;background:#d4af37;cursor:pointer;border:2px solid transparent"></div>
+          </div>
+          <button class="btng" onclick="addShift()">➕ إضافة شيفت</button>
+        </div>
+
+        <!-- Shifts list -->
+        <div id="shifts-list"></div>
+
+        <!-- Assign employee to shift -->
+        <div id="assign-section" style="display:none;margin-top:20px">
+          <div style="font-size:.88rem;font-weight:700;color:var(--text);margin-bottom:12px" id="assign-title">تعيين موظفين للشيفت</div>
+          <div id="assign-emp-list"></div>
+          <button class="ghost" style="width:100%;margin-top:10px" onclick="closeAssign()">✕ إغلاق</button>
+        </div>
+      </div>
+
       <!-- SETTINGS -->
       <div id="tab-settings" style="display:none">
 
@@ -423,6 +502,31 @@ body{min-height:100dvh;background:var(--bg);color:var(--text);
           <div style="display:flex;align-items:center;justify-content:space-between">
             <span style="font-size:.9rem;color:var(--text2)" id="lbl-lang-set">اللغة</span>
             <button onclick="toggleLang()" id="lang-toggle-btn" style="background:var(--bg3);border:1px solid var(--card-b);color:var(--text);border-radius:20px;padding:6px 16px;font-family:inherit;font-size:.82rem;cursor:pointer">العربية</button>
+          </div>
+        </div>
+
+        <!-- Work Schedule -->
+        <div class="section-box" style="background:var(--card);border:1px solid var(--card-b);margin-bottom:16px">
+          <div style="font-size:.92rem;font-weight:700;color:var(--text);margin-bottom:16px">⏰ <span id="lbl-work-sched">جدول الدوام</span></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div>
+              <div style="font-size:.85rem;color:var(--text2);font-weight:600" id="lbl-start-time">وقت بداية الدوام</div>
+              <div style="font-size:.72rem;color:var(--text3);margin-top:2px" id="lbl-late-hint">يُحسب التأخر بعد هذا الوقت</div>
+            </div>
+            <input id="work-start-time" type="time" class="inp" style="width:120px;text-align:center;font-size:1rem;font-weight:700;direction:ltr" value="09:00" onchange="saveWorkStart()"/>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <div style="font-size:.85rem;color:var(--text2);font-weight:600" id="lbl-grace">فترة السماح</div>
+              <div style="font-size:.72rem;color:var(--text3);margin-top:2px" id="lbl-grace-hint">دقائق قبل احتساب التأخر</div>
+            </div>
+            <select id="grace-period" class="inp" style="width:100px;text-align:center;direction:ltr" onchange="saveWorkStart()">
+              <option value="0">0 دق</option>
+              <option value="5">5 دق</option>
+              <option value="10" selected>10 دق</option>
+              <option value="15">15 دق</option>
+              <option value="30">30 دق</option>
+            </select>
           </div>
         </div>
 
@@ -569,8 +673,12 @@ let employees=[],records=[],alerts=[];
 let selectedEmp=null,scanState="idle";
 let pinVal="",currentAlertType="info";
 let currentTab="today";
+let reportDate=new Date().toISOString().split("T")[0];
 let unsubs=[];
 let adminPIN=localStorage.getItem("adminPIN")||"1234";
+let shifts=[];
+let selectedShiftColor="#3b82f6";
+let assigningShiftId=null;
 let lang=localStorage.getItem("lang")||"ar";
 let theme=localStorage.getItem("theme")||"dark";
 let editingEmpId=null, manualEmpId=null, manualType="in";
@@ -707,9 +815,18 @@ async function startListeners(){
     alerts=Object.entries(snap.val()||{}).map(([id,d])=>({id,...d})).sort((a,b)=>a.ts-b.ts);
     renderHome();renderAdminIfOpen();
   }));
-  // Load PIN from Firebase
+  const shRef=rtdbRef(db,"shifts");
+  unsubs.push(rtdbOnValue(shRef,snap=>{
+    shifts=Object.entries(snap.val()||{}).map(([id,d])=>({id,...d})).sort((a,b)=>(a.from||"00:00").localeCompare(b.from||"00:00"));
+    renderHome();renderAdminIfOpen();
+  }));
+  // Load settings from Firebase
   const sr=rtdbRef(db,"settings/adminPIN");
   rtdbOnValue(sr,snap=>{if(snap.val())adminPIN=snap.val();},{onlyOnce:true});
+  const wsr=rtdbRef(db,"settings/workStartTime");
+  rtdbOnValue(wsr,snap=>{if(snap.val()){localStorage.setItem("workStartTime",snap.val());}},{onlyOnce:true});
+  const gpr=rtdbRef(db,"settings/gracePeriod");
+  rtdbOnValue(gpr,snap=>{if(snap.val()!=null){localStorage.setItem("gracePeriod",String(snap.val()));}},{onlyOnce:true});
   // Seed
   if(!employees.length){
     const seed=[
@@ -731,9 +848,11 @@ async function fbUpdate(path,data){
     if(path.startsWith("alerts/")){const a=alerts.find(x=>x.id===path.split("/")[1]);if(a)Object.assign(a,data);renderAdminIfOpen();}
     if(path.startsWith("employees/")){const e=employees.find(x=>x.id===path.split("/")[1]);if(e)Object.assign(e,data);renderHome();renderAdminIfOpen();}
     if(path.startsWith("settings/")){}
+    if(path.startsWith("shifts/")){}
     return;
   }
-  await rtdbUpdate(rtdbRef(db,path),data);
+  const {update}=await import(`https://www.gstatic.com/firebasejs/${FB_VER}/firebase-database.js`);
+  await update(rtdbRef(db,path),data);
 }
 async function fbRemove(path){
   if(demoMode){
@@ -741,6 +860,7 @@ async function fbRemove(path){
     if(path.startsWith("records/")){records=records.filter(x=>x.id!==id);renderAdminIfOpen();}
     if(path.startsWith("alerts/")){alerts=alerts.filter(x=>x.id!==id);renderAdminIfOpen();}
     if(path.startsWith("employees/")){employees=employees.filter(x=>x.id!==id);renderHome();renderAdminIfOpen();}
+    if(path.startsWith("shifts/")){shifts=shifts.filter(x=>x.id!==id);renderAdminIfOpen();}
     return;
   }
   await rtdbRemove(rtdbRef(db,path));
@@ -777,6 +897,41 @@ function renderBanner(){
     ${active.length>1?`<div style="display:flex;gap:4px;justify-content:center;margin-top:10px">${active.map((_,i)=>`<div style="width:${i===bannerIdx?18:6}px;height:5px;border-radius:3px;background:${i===bannerIdx?m.color:"var(--card-b)"};transition:all .35s"></div>`).join("")}</div>`:""}
   </div>`;
   if(active.length>1){clearInterval(bannerTimer);bannerTimer=setInterval(()=>{bannerIdx=(bannerIdx+1)%active.length;renderBanner();},4500);}
+
+  // Late employee warning on home screen
+  renderLateWarning();
+}
+
+function renderLateWarning(){
+  const lateEl=document.getElementById("late-warning-banner");
+  if(!lateEl) return;
+  const wsTime=localStorage.getItem("workStartTime")||"09:00";
+  const graceMins=parseInt(localStorage.getItem("gracePeriod")||"10");
+  const [wsH,wsM]=wsTime.split(":").map(Number);
+  const wsMinutes=wsH*60+wsM+graceMins;
+  const now=new Date(); const nowMins=now.getHours()*60+now.getMinutes();
+  if(nowMins<=wsMinutes){lateEl.innerHTML="";return;}
+  const today=todayStr();
+  const lateEmps=employees.filter(emp=>{
+    const empRecs=records.filter(r=>r.employeeId===emp.id&&new Date(r.ts).toISOString().split("T")[0]===today);
+    return empRecs.length===0; // no record today at all
+  });
+  if(!lateEmps.length){lateEl.innerHTML="";return;}
+  const overMin=nowMins-wsMinutes;
+  const h=Math.floor(overMin/60); const m=overMin%60;
+  const durStr=lang==="ar"?(h>0?`${h}س ${m>0?m+"د":""}`:`${m}د`):(h>0?`${h}h${m>0?m+"m":""}`:`${m}m`);
+  lateEl.innerHTML=`<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:14px;padding:12px 15px;margin-bottom:14px;animation:urgentPulse 2s ease-in-out infinite">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <span style="font-size:1rem">🕐</span>
+      <span style="font-size:.78rem;font-weight:700;color:var(--red)">${lang==="ar"?`${lateEmps.length} موظف${lateEmps.length>1?"ين":""} لم يسجلوا حضورهم (تأخر ${durStr})`:
+        `${lateEmps.length} employee${lateEmps.length>1?"s":""} haven't checked in (${durStr} late)`}</span>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px">
+      ${lateEmps.map(e=>`<div style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);border-radius:20px;padding:4px 10px;font-size:.72rem;color:var(--red);display:flex;align-items:center;gap:5px">
+        <span style="font-weight:700">${e.avatar}</span><span>${e.name}</span>
+      </div>`).join("")}
+    </div>
+  </div>`;
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -793,10 +948,12 @@ function renderHome(){
   const grid=document.getElementById("emp-grid"); if(!grid) return;
   grid.innerHTML=employees.map(emp=>{
     const ci=isCheckedIn(emp.id);
+    const empShift=shifts.find(s=>s.employees&&s.employees[emp.id]);
     return `<div class="emp-card" onclick="selectEmp('${emp.id}')">
-      <div class="emp-av${ci?" in":""}">${emp.avatar}</div>
+      <div class="emp-av${ci?" in":""}" style="${empShift?`border-color:${empShift.color||"var(--gold)"}`:""}">${emp.avatar}</div>
       <div style="font-weight:600;font-size:.88rem;margin-bottom:2px;color:var(--text)">${emp.name}</div>
       <div style="font-size:.7rem;color:var(--text3)">${emp.role}</div>
+      ${empShift?`<div style="font-size:.63rem;color:${empShift.color||"var(--gold)"};background:${empShift.color||"#d4af37"}18;border:1px solid ${empShift.color||"var(--gold)"}44;padding:2px 8px;border-radius:20px;display:inline-block;margin-top:4px">🔄 ${empShift.name}</div>`:""}
       <div class="badge" style="color:${ci?"var(--green)":"var(--text3)"};background:${ci?"rgba(34,197,94,.1)":"var(--card)"}">
         ${ci?t().present:t().absent}
       </div>
@@ -902,7 +1059,7 @@ function renderAdminIfOpen(){
 
 window.switchTab=function(tab){
   currentTab=tab;
-  ["today","all","alerts","employees","settings"].forEach(k=>{
+  ["today","report","all","alerts","employees","shifts","settings"].forEach(k=>{
     document.getElementById("tab-"+k).style.display=k===tab?"block":"none";
     document.querySelector(`[data-tab="${k}"]`)?.classList.toggle("on",k===tab);
   });
@@ -936,8 +1093,216 @@ function renderAdmin(){
     if(trc) trc.textContent=tr.totalRecs(records.length);
     const arc=document.getElementById("lbl-all-recs-count");
     if(arc) arc.textContent=tr.totalRecs(records.length);
+    // load saved work schedule
+    const wst=document.getElementById("work-start-time");
+    if(wst) wst.value=localStorage.getItem("workStartTime")||"09:00";
+    const gp=document.getElementById("grace-period");
+    if(gp) gp.value=localStorage.getItem("gracePeriod")||"10";
   }
+  if(currentTab==="report") renderReport();
+  if(currentTab==="shifts") renderShifts();
 }
+
+// ── Daily Report ──────────────────────────────────────────────────────
+function renderReport(){
+  const tr=t();
+  const today=todayStr();
+
+  // date label
+  const d=new Date(reportDate+"T12:00:00");
+  document.getElementById("report-date-lbl").textContent=
+    d.toLocaleDateString(lang==="ar"?"ar-SA":"en-US",{year:"numeric",month:"long",day:"numeric"});
+  document.getElementById("report-day-lbl").textContent=
+    d.toLocaleDateString(lang==="ar"?"ar-SA":"en-US",{weekday:"long"});
+
+  // disable next if today
+  const nextBtn=document.getElementById("report-next-btn");
+  if(nextBtn) nextBtn.style.opacity=reportDate>=today?"0.3":"1";
+
+  // filter records for this day
+  const dayRecs=records.filter(r=>new Date(r.ts).toISOString().split("T")[0]===reportDate);
+
+  // build per-employee latest state
+  const empMap={};
+  dayRecs.forEach(r=>{
+    if(!empMap[r.employeeId]) empMap[r.employeeId]={ins:[],outs:[]};
+    if(r.type==="in") empMap[r.employeeId].ins.push(r);
+    else empMap[r.employeeId].outs.push(r);
+  });
+
+  const checkedInEmps=Object.keys(empMap).filter(id=>empMap[id].ins.length>0);
+  const checkedOutEmps=Object.keys(empMap).filter(id=>empMap[id].outs.length>0);
+  const absentEmps=employees.filter(e=>!empMap[e.id]).map(e=>e.id);
+
+  // stats — also compute late count
+  const wsT=localStorage.getItem("workStartTime")||"09:00";
+  const graceM=parseInt(localStorage.getItem("gracePeriod")||"10");
+  const [_wH,_wM]=wsT.split(":").map(Number);
+  const _wsMinutes=_wH*60+_wM+graceM;
+  const lateCount=checkedInEmps.filter(id=>{
+    const firstIn=empMap[id].ins[0];
+    const d=new Date(firstIn.ts);
+    return (d.getHours()*60+d.getMinutes()) > _wsMinutes;
+  }).length;
+
+  document.getElementById("report-stats").innerHTML=`
+    <div class="stat-card"><div class="stat-val" style="color:var(--green)">${checkedInEmps.length}</div><div class="stat-lbl">${lang==="ar"?"حضروا":"Checked In"}</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:${lateCount>0?"var(--red)":"var(--text3)"}">${lateCount}</div><div class="stat-lbl">${lang==="ar"?"متأخرون":"Late"}</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--text3)">${absentEmps.length}</div><div class="stat-lbl">${lang==="ar"?"غائبون":"Absent"}</div></div>`;
+
+  // section titles
+  document.getElementById("report-ci-title").textContent=lang==="ar"?"سجلوا الحضور":"Checked In";
+  document.getElementById("report-co-title").textContent=lang==="ar"?"سجلوا الانصراف":"Checked Out";
+  document.getElementById("report-abs-title").textContent=lang==="ar"?"لم يسجلوا حضوراً":"No Record";
+  document.getElementById("report-ci-count").textContent=checkedInEmps.length;
+  document.getElementById("report-co-count").textContent=checkedOutEmps.length;
+  document.getElementById("report-abs-count").textContent=absentEmps.length;
+
+  // Work start time & grace
+  const wsTime = localStorage.getItem("workStartTime")||"09:00";
+  const graceMins = parseInt(localStorage.getItem("gracePeriod")||"10");
+  const [wsH,wsM] = wsTime.split(":").map(Number);
+  const wsMinutes = wsH*60 + wsM + graceMins; // deadline in minutes from midnight
+
+  function lateInfo(firstInTs){
+    const d = new Date(firstInTs);
+    const empMins = d.getHours()*60 + d.getMinutes();
+    const lateMins = empMins - wsMinutes;
+    if(lateMins <= 0) return null; // on time
+    const h = Math.floor(lateMins/60);
+    const m = lateMins % 60;
+    if(lang==="ar"){
+      if(h>0) return `تأخر ${h} ساعة ${m>0?m+" دق":""}`;
+      return `تأخر ${m} دقيقة`;
+    } else {
+      if(h>0) return `Late ${h}h ${m>0?m+"m":""}`;
+      return `Late ${m}m`;
+    }
+  }
+
+  function durationStr(inTs, outTs){
+    if(!outTs) return lang==="ar"?"لا يزال حاضراً":"Still present";
+    const mins = Math.round((outTs - inTs)/60000);
+    const h = Math.floor(mins/60); const m = mins%60;
+    if(lang==="ar") return h>0?`${h} ساعة ${m>0?m+" دق":""}`:`${m} دقيقة`;
+    return h>0?`${h}h ${m>0?m+"m":""}`:`${m}m`;
+  }
+
+  // Check-in list
+  document.getElementById("report-ci-list").innerHTML=checkedInEmps.length===0
+    ?`<div style="color:var(--text3);font-size:.82rem;padding:10px 0">${lang==="ar"?"لا أحد":"No one"}</div>`
+    :checkedInEmps.map(id=>{
+      const emp=getEmp(id); const data=empMap[id];
+      const firstIn = data.ins[0]; const lastOut = data.outs[data.outs.length-1];
+      const times=data.ins.map(r=>fmtTime(r.ts)).join(" · ");
+      const late = lateInfo(firstIn.ts);
+      const dur = durationStr(firstIn.ts, lastOut?.ts);
+      return `<div style="background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.18);border-radius:12px;padding:12px 14px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:${late?'10':'0'}px">
+          <div style="width:40px;height:40px;border-radius:50%;background:${late?"rgba(239,68,68,.15)":"rgba(34,197,94,.15)"};border:1.5px solid ${late?"var(--red)":"var(--green)"};display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;color:${late?"var(--red)":"var(--green)"};flex-shrink:0">${emp?.avatar||"؟"}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;font-size:.9rem;color:var(--text)">${emp?.name||"?"}</div>
+            <div style="font-size:.7rem;color:var(--text3);margin-top:1px">${emp?.role||""}</div>
+          </div>
+          <div style="text-align:${lang==="en"?"left":"right"}">
+            <div style="font-size:.68rem;font-weight:700;color:var(--green)">${lang==="ar"?"دخل":"In"}: ${fmtTime(firstIn.ts)}</div>
+            ${lastOut?`<div style="font-size:.68rem;color:var(--amber);margin-top:2px">${lang==="ar"?"خرج":"Out"}: ${fmtTime(lastOut.ts)}</div>`:""}
+            <div style="font-size:.68rem;color:var(--text3);margin-top:2px">⏱ ${dur}</div>
+          </div>
+        </div>
+        ${late?`<div style="display:flex;align-items:center;gap:6px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:8px;padding:7px 10px">
+          <span style="font-size:.9rem">🕐</span>
+          <div style="flex:1">
+            <span style="font-size:.78rem;font-weight:700;color:var(--red)">${late}</span>
+            <span style="font-size:.72rem;color:var(--text3);margin-${lang==="en"?"left":"right"}:6px">· ${lang==="ar"?"بداية الدوام":"Start"}: ${wsTime}</span>
+          </div>
+        </div>`:""}
+        ${data.ins.length>1?`<div style="margin-top:8px;font-size:.7rem;color:var(--text3)">
+          ${lang==="ar"?"جميع أوقات الدخول:":"All check-ins:"} ${times}
+        </div>`:""}
+      </div>`;
+    }).join("");
+
+  // Check-out list (only those who checked out but NOT checked in = partial records)
+  // We show ALL who checked out with full duration
+  const allCheckedOut = Object.keys(empMap).filter(id=>empMap[id].outs.length>0);
+  document.getElementById("report-co-list").innerHTML=allCheckedOut.length===0
+    ?`<div style="color:var(--text3);font-size:.82rem;padding:10px 0">${lang==="ar"?"لا أحد":"No one"}</div>`
+    :allCheckedOut.map(id=>{
+      const emp=getEmp(id); const data=empMap[id];
+      const lastOut = data.outs[data.outs.length-1];
+      const firstIn = data.ins[0];
+      const times=data.outs.map(r=>fmtTime(r.ts)).join(" · ");
+      const totalMins = firstIn && lastOut ? Math.round((lastOut.ts - firstIn.ts)/60000) : null;
+      const totalStr = totalMins!=null ? (()=>{const h=Math.floor(totalMins/60);const m=totalMins%60;return lang==="ar"?(h>0?`${h} ساعة ${m>0?m+" دق":""}`:`${m} دقيقة`):(h>0?`${h}h ${m>0?m+"m":""}`:`${m}m`);})() : null;
+      return `<div style="background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.2);border-radius:12px;padding:12px 14px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:40px;height:40px;border-radius:50%;background:rgba(245,158,11,.15);border:1.5px solid var(--amber);display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;color:var(--amber);flex-shrink:0">${emp?.avatar||"؟"}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;font-size:.9rem;color:var(--text)">${emp?.name||"?"}</div>
+            <div style="font-size:.7rem;color:var(--text3);margin-top:1px">${emp?.role||""}</div>
+          </div>
+          <div style="text-align:${lang==="en"?"left":"right"}">
+            ${firstIn?`<div style="font-size:.68rem;color:var(--green);font-weight:700">${lang==="ar"?"دخل":"In"}: ${fmtTime(firstIn.ts)}</div>`:""}
+            <div style="font-size:.68rem;font-weight:700;color:var(--amber);margin-top:2px">${lang==="ar"?"خرج":"Out"}: ${fmtTime(lastOut.ts)}</div>
+            ${totalStr?`<div style="font-size:.68rem;color:var(--text3);margin-top:2px">⏱ ${lang==="ar"?"مجموع":"Total"}: ${totalStr}</div>`:""}
+          </div>
+        </div>
+        ${data.outs.length>1?`<div style="margin-top:8px;font-size:.7rem;color:var(--text3)">
+          ${lang==="ar"?"جميع أوقات الخروج:":"All check-outs:"} ${times}
+        </div>`:""}
+      </div>`;
+    }).join("");
+
+  // Absent list — show late duration for today
+  const isToday = reportDate === today;
+  const nowMins = new Date().getHours()*60 + new Date().getMinutes();
+  document.getElementById("report-abs-list").innerHTML=absentEmps.length===0
+    ?`<div style="color:var(--text3);font-size:.82rem;padding:10px 0">${lang==="ar"?"الجميع سجّل اليوم 🎉":"Everyone recorded today 🎉"}</div>`
+    :absentEmps.map(id=>{
+      const emp=getEmp(id);
+      const overdueMins = isToday ? nowMins - wsMinutes : null;
+      const isOverdue = overdueMins !== null && overdueMins > 0;
+      let overdueStr = "";
+      if(isOverdue){
+        const h=Math.floor(overdueMins/60); const m=overdueMins%60;
+        overdueStr = lang==="ar"
+          ? (h>0?`غائب منذ ${h} ساعة ${m>0?m+" دق":""}`:`غائب منذ ${m} دقيقة`)
+          : (h>0?`Absent ${h}h ${m>0?m+"m":""}`:`Absent ${m}m`);
+      }
+      return `<div style="background:${isOverdue?"rgba(239,68,68,.05)":"var(--card)"};border:1px solid ${isOverdue?"rgba(239,68,68,.2)":"var(--card-b)"};border-radius:12px;padding:12px 14px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:40px;height:40px;border-radius:50%;background:${isOverdue?"rgba(239,68,68,.12)":"var(--bg3)"};border:1.5px solid ${isOverdue?"rgba(239,68,68,.35)":"var(--card-b)"};display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;color:${isOverdue?"var(--red)":"var(--text3)"};flex-shrink:0">${emp?.avatar||"؟"}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;font-size:.9rem;color:${isOverdue?"var(--text)":"var(--text2)"}">${emp?.name||"?"}</div>
+            <div style="font-size:.7rem;color:var(--text3);margin-top:2px">${emp?.role||""}</div>
+          </div>
+          <div style="text-align:${lang==="en"?"left":"right"}">
+            ${isOverdue
+              ?`<div style="font-size:.72rem;font-weight:700;color:var(--red)">⏰ ${overdueStr}</div>
+                <div style="font-size:.67rem;color:var(--text3);margin-top:2px">${lang==="ar"?"بداية الدوام":"Start"}: ${wsTime}</div>`
+              :`<div style="font-size:.75rem;color:var(--text3)">○ ${lang==="ar"?"غائب":"Absent"}</div>`
+            }
+          </div>
+        </div>
+      </div>`;
+    }).join("");
+}
+
+window.reportPrev=function(){
+  const d=new Date(reportDate+"T12:00:00");
+  d.setDate(d.getDate()-1);
+  reportDate=d.toISOString().split("T")[0];
+  renderReport();
+};
+window.reportNext=function(){
+  const d=new Date(reportDate+"T12:00:00");
+  d.setDate(d.getDate()+1);
+  const today=todayStr();
+  if(d.toISOString().split("T")[0]>today) return;
+  reportDate=d.toISOString().split("T")[0];
+  renderReport();
+};
 
 // ── Record Row ────────────────────────────────────────────────────────
 function recHTML(rec,showDate){
@@ -990,7 +1355,8 @@ function empHTML(emp){
       <div class="rec-av" style="background:rgba(212,175,55,.1);border:1.5px solid var(--gold);color:var(--gold);width:46px;height:46px">${emp.avatar}</div>
       <div style="flex:1;min-width:0">
         <div style="font-weight:600;font-size:.9rem;color:var(--text)">${emp.name}</div>
-        <div style="font-size:.72rem;color:var(--text3);margin-top:2px">${emp.role}</div>
+        <div style="font-size:.72rem;color:var(--text3);margin-top:1px">${emp.role}</div>
+        ${(()=>{const s=shifts.find(sh=>sh.employees&&sh.employees[emp.id]);return s?`<div style="font-size:.63rem;color:${s.color};margin-top:2px">🔄 ${s.name} (${s.from}–${s.to})</div>`:""})()}
         <div style="font-size:.68rem;margin-top:3px;color:${ci?"var(--green)":"var(--text3)"}">
           ${ci?tr.presentNow:tr.absentNow} · ${empRecs.length} ${tr.times}
         </div>
@@ -1111,6 +1477,179 @@ window.deleteRecord=function(id){
   openConfirm("🗑",t().confirmDel,t().confirmDelMsg,async()=>{
     await fbRemove(`records/${id}`); showToast(t().toastRecDeleted,"err");
   });
+};
+
+
+// ════════════════════════════════════════════════════════════════════
+// SHIFTS
+// ════════════════════════════════════════════════════════════════════
+window.selectShiftColor=function(color){
+  selectedShiftColor=color;
+  document.querySelectorAll("#shift-colors div").forEach(d=>{
+    const c=d.dataset.color;
+    d.style.border=c===color?"3px solid "+c:"2px solid transparent";
+    d.style.boxShadow=c===color?"0 0 0 2px "+c+"55":"none";
+  });
+};
+
+window.addShift=async function(){
+  const name=document.getElementById("shift-name")?.value.trim();
+  const from=document.getElementById("shift-from")?.value||"06:00";
+  const to=document.getElementById("shift-to")?.value||"14:00";
+  if(!name){showToast(lang==="ar"?"أدخل اسم الشيفت":"Enter shift name","err");return;}
+  const shift={name,from,to,color:selectedShiftColor,employees:{}};
+  await fbPush("shifts",shift);
+  document.getElementById("shift-name").value="";
+  showToast(lang==="ar"?"✓ تم إضافة الشيفت":"✓ Shift added");
+};
+
+window.deleteShift=function(id){
+  openConfirm("🔄",lang==="ar"?"حذف الشيفت":"Delete Shift",
+    lang==="ar"?"سيتم حذف هذا الشيفت وإلغاء تعيين جميع موظفيه":"This shift will be deleted and all employees unassigned",
+    async()=>{
+      await fbRemove("shifts/"+id);
+      showToast(lang==="ar"?"تم حذف الشيفت":"Shift deleted","err");
+    });
+};
+
+window.openAssign=function(shiftId){
+  assigningShiftId=shiftId;
+  const shift=shifts.find(s=>s.id===shiftId);
+  if(!shift) return;
+  document.getElementById("assign-section").style.display="block";
+  document.getElementById("assign-title").textContent=(lang==="ar"?"تعيين موظفين: ":"Assign employees: ")+shift.name;
+  document.getElementById("assign-emp-list").innerHTML=employees.map(emp=>{
+    const assigned=shift.employees&&shift.employees[emp.id];
+    const otherShift=shifts.find(s=>s.id!==shiftId&&s.employees&&s.employees[emp.id]);
+    return `<div style="display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid ${assigned?shift.color+"44":"var(--card-b)"};border-radius:12px;padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:all .2s" onclick="toggleAssign('${emp.id}')">
+      <div style="width:38px;height:38px;border-radius:50%;background:${assigned?shift.color+"22":"var(--bg3)"};border:2px solid ${assigned?shift.color:"var(--card-b)"};display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;color:${assigned?shift.color:"var(--text3)"};flex-shrink:0">${emp.avatar}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:.9rem;color:var(--text)">${emp.name}</div>
+        <div style="font-size:.7rem;color:var(--text3);margin-top:1px">${emp.role}</div>
+        ${otherShift?`<div style="font-size:.65rem;color:${otherShift.color};margin-top:2px">⚠️ ${lang==="ar"?"معين في:":"In:"} ${otherShift.name}</div>`:""}
+      </div>
+      <div style="width:26px;height:26px;border-radius:50%;border:2px solid ${assigned?shift.color:"var(--card-b)"};background:${assigned?shift.color:"transparent"};display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s">
+        ${assigned?`<span style="color:#000;font-size:.75rem;font-weight:700">✓</span>`:""}
+      </div>
+    </div>`;
+  }).join("")||`<div style="text-align:center;padding:20px;color:var(--text3)">${lang==="ar"?"لا يوجد موظفون":"No employees"}</div>`;
+  document.getElementById("assign-section").scrollIntoView({behavior:"smooth"});
+};
+
+window.toggleAssign=async function(empId){
+  if(!assigningShiftId) return;
+  const shift=shifts.find(s=>s.id===assigningShiftId);
+  if(!shift) return;
+  const assigned=shift.employees&&shift.employees[empId];
+  if(assigned){
+    await fbUpdate("shifts/"+assigningShiftId+"/employees",{[empId]:null});
+  } else {
+    // Remove from other shifts first
+    for(const s of shifts){
+      if(s.id!==assigningShiftId&&s.employees&&s.employees[empId]){
+        await fbUpdate("shifts/"+s.id+"/employees",{[empId]:null});
+      }
+    }
+    await fbUpdate("shifts/"+assigningShiftId+"/employees",{[empId]:true});
+  }
+  // re-open assign
+  setTimeout(()=>openAssign(assigningShiftId),300);
+};
+
+window.closeAssign=function(){
+  assigningShiftId=null;
+  document.getElementById("assign-section").style.display="none";
+};
+
+function renderShifts(){
+  const list=document.getElementById("shifts-list");
+  if(!list) return;
+  if(!shifts.length){
+    list.innerHTML=`<div style="text-align:center;padding:30px;color:var(--text3);font-size:.88rem">${lang==="ar"?"لا توجد شفتات — أضف شيفت أولاً":"No shifts yet — add one above"}</div>`;
+    return;
+  }
+  const today=todayStr();
+  list.innerHTML=shifts.map(shift=>{
+    const color=shift.color||"#d4af37";
+    const empIds=shift.employees?Object.keys(shift.employees).filter(k=>shift.employees[k]):[];
+    const shiftEmps=empIds.map(id=>employees.find(e=>e.id===id)).filter(Boolean);
+    // How many present today in this shift
+    const presentCount=shiftEmps.filter(emp=>{
+      const empRecs=records.filter(r=>r.employeeId===emp.id&&new Date(r.ts).toISOString().split("T")[0]===today);
+      return empRecs.length>0&&empRecs[empRecs.length-1].type==="in";
+    }).length;
+    // Duration
+    const [fH,fM]=shift.from.split(":").map(Number);
+    const [tH,tM]=shift.to.split(":").map(Number);
+    let durMins=(tH*60+tM)-(fH*60+fM);
+    if(durMins<0) durMins+=24*60; // overnight shift
+    const durH=Math.floor(durMins/60); const durMn=durMins%60;
+    const durStr=lang==="ar"?(durH>0?`${durH} ساعة${durMn>0?" "+durMn+" دق":""}`:`${durMn} دق`):(durH>0?`${durH}h${durMn>0?" "+durMn+"m":""}`:`${durMn}m`);
+    return `<div style="background:${color}0d;border:1px solid ${color}44;border-radius:16px;padding:16px;margin-bottom:14px">
+      <!-- Header -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div style="width:44px;height:44px;border-radius:12px;background:${color}22;border:2px solid ${color};display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">🔄</div>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:.95rem;color:var(--text)">${shift.name}</div>
+          <div style="font-size:.75rem;color:${color};font-weight:600;margin-top:2px">${shift.from} – ${shift.to} · ${durStr}</div>
+        </div>
+        <div style="text-align:center;background:${color}22;border-radius:10px;padding:6px 10px;min-width:50px">
+          <div style="font-size:1.3rem;font-weight:700;color:${color}">${presentCount}/${shiftEmps.length}</div>
+          <div style="font-size:.6rem;color:var(--text3)">${lang==="ar"?"حاضر":"Present"}</div>
+        </div>
+      </div>
+      <!-- Employees -->
+      ${shiftEmps.length===0
+        ?`<div style="font-size:.78rem;color:var(--text3);padding:8px 0;text-align:center">${lang==="ar"?"لا يوجد موظفون في هذا الشيفت":"No employees assigned"}</div>`
+        :`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">
+          ${shiftEmps.map(emp=>{
+            const ci=isCheckedIn(emp.id);
+            // Check if late for this shift
+            const empRecs=records.filter(r=>r.employeeId===emp.id&&new Date(r.ts).toISOString().split("T")[0]===today&&r.type==="in");
+            let lateTag="";
+            if(empRecs.length>0){
+              const firstIn=empRecs[0];
+              const d=new Date(firstIn.ts);
+              const empMinutes=d.getHours()*60+d.getMinutes();
+              const shiftStart=fH*60+fM;
+              const gracePeriod=parseInt(localStorage.getItem("gracePeriod")||"10");
+              const deadline=shiftStart+gracePeriod;
+              if(empMinutes>deadline){
+                const lateMins=empMinutes-deadline;
+                const lh=Math.floor(lateMins/60);const lm=lateMins%60;
+                lateTag=lang==="ar"?(lh>0?`+${lh}س${lm>0?lm+"د":""}`:`+${lm}د`):(lh>0?`+${lh}h${lm>0?lm+"m":""}`:`+${lm}m`);
+              }
+            }
+            const now=new Date();const nowM=now.getHours()*60+now.getMinutes();
+            const shiftStartM=fH*60+fM+parseInt(localStorage.getItem("gracePeriod")||"10");
+            const isAbsentLate=!ci&&empRecs.length===0&&nowM>shiftStartM;
+            return `<div style="background:${ci?"rgba(34,197,94,.1)":isAbsentLate?"rgba(239,68,68,.1)":"var(--card)"};border:1px solid ${ci?"rgba(34,197,94,.3)":isAbsentLate?"rgba(239,68,68,.3)":"var(--card-b)"};border-radius:20px;padding:4px 10px;display:flex;align-items:center;gap:5px">
+              <span style="font-weight:700;font-size:.78rem;color:${ci?"var(--green)":isAbsentLate?"var(--red)":"var(--text3)"}">${emp.avatar}</span>
+              <span style="font-size:.73rem;color:${ci?"var(--green)":isAbsentLate?"var(--red)":"var(--text2)"}">${emp.name.split(" ")[0]}</span>
+              ${lateTag?`<span style="font-size:.63rem;color:var(--red);font-weight:700">${lateTag}</span>`:""}
+              ${isAbsentLate?`<span style="font-size:.63rem;color:var(--red)">○</span>`:""}
+            </div>`;
+          }).join("")}
+        </div>`
+      }
+      <!-- Actions -->
+      <div style="display:flex;gap:8px">
+        <button onclick="openAssign('${shift.id}')" style="flex:1;padding:9px;background:${color}18;border:1px solid ${color}44;color:${color};border-radius:8px;font-family:inherit;font-size:.8rem;cursor:pointer;font-weight:600">👥 ${lang==="ar"?"تعيين موظفين":"Assign"}</button>
+        <button onclick="deleteShift('${shift.id}')" style="padding:9px 12px;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.22);color:var(--red);border-radius:8px;font-family:inherit;font-size:.8rem;cursor:pointer">🗑</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+// ── Settings: Work Schedule ──────────────────────────────────────────
+window.saveWorkStart=function(){
+  const wst=document.getElementById("work-start-time")?.value||"09:00";
+  const gp=document.getElementById("grace-period")?.value||"10";
+  localStorage.setItem("workStartTime",wst);
+  localStorage.setItem("gracePeriod",gp);
+  fbSet("settings/workStartTime",wst);
+  fbSet("settings/gracePeriod",parseInt(gp));
+  showToast(lang==="ar"?"✓ تم حفظ جدول الدوام":"✓ Work schedule saved");
 };
 
 // ── Settings: Change PIN ──────────────────────────────────────────────
